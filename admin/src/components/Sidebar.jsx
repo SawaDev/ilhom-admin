@@ -84,15 +84,13 @@ const Sidebar = ({ setToggleMenu, toggleMenu }) => {
                   <span className="text-xl text-purple-500 mb-2 cursor-pointer">Sotuvlar</span>
                 </li>
               </Link>
-              <p className="text-gray-400 m-2 mt-3 uppercase">USEFUL</p>
-              <Link to="/calculator" >
-                <li className={linkClass}>
-                  <div>
-                    <CalculateIcon className="text-xl text-purple-500" />
-                  </div>
-                  <span className="text-xl text-purple-500 mb-2 cursor-pointer">Calculator</span>
-                </li>
-              </Link>
+              {/* <p className="text-gray-400 m-2 mt-3 uppercase">USEFUL</p>
+              <li className={linkClass}>
+                <div>
+                  <CalculateIcon className="text-xl text-purple-500" />
+                </div>
+                <span className="text-xl text-purple-500 mb-2 cursor-pointer">Calculator</span>
+              </li>
               <li className={linkClass}>
                 <div>
                   <NotificationsNoneIcon className="text-xl text-purple-500" />
@@ -124,7 +122,7 @@ const Sidebar = ({ setToggleMenu, toggleMenu }) => {
                   <AccountCircleOutlinedIcon className="text-xl text-purple-500" />
                 </div>
                 <span className="text-xl text-purple-500 mb-2 cursor-pointer">Profile</span>
-              </li>
+              </li> */}
               <li className={linkClass} onClick={handleLogout}>
                 <div>
                   <ExitToAppIcon className="text-xl text-purple-500" />

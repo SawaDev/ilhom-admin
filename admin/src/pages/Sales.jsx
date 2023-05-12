@@ -68,7 +68,14 @@ const Sales = () => {
       }
     ]
 
-    return <Table columns={columns} dataSource={record} pagination={false} />;
+    return <Table
+      columns={columns}
+      dataSource={record}
+      pagination={false}
+      scroll={{
+        x: 500
+      }}
+    />;
   }
 
   const columns = [
@@ -142,7 +149,7 @@ const Sales = () => {
                       <div className='text-lg font-semibold'>
                         Sana: <span className=''>{sale.createdAtDate}</span>
                       </div>
-                      <div className='border-[1px]'>
+                      <div className='border-[1px] overflow-hidden'>
                         <Table
                           expandable={{
                             expandedRowRender: (record) =>
@@ -152,6 +159,9 @@ const Sales = () => {
                           dataSource={saleData}
                           columns={columns}
                           pagination={false}
+                          scroll={{
+                            x: 300
+                          }}
                         />
                       </div>
                     </div>

@@ -296,7 +296,7 @@ const List = () => {
               rowClassName="editable-row"
               pagination={false}
               scroll={{
-                x: 500
+                x: 400
               }}
             />
           </Form>

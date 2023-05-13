@@ -13,6 +13,7 @@ import Client from "./models/Client.js";
 import Product from "./models/Product.js";
 import Sale from "./models/Sale.js";
 import { verifyToken } from "./utils/verifyToken.js";
+import path from "path";
 
 const app = express();
 dotenv.config();
@@ -231,6 +232,10 @@ app.post('/api/sendmessage', async (req, res) => {
     console.error(error);
     res.status(500).send('Error occurred while sending the message');
   }
+});
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../admin/dist/index.html'));
 });
 
 app.listen(port, () => {

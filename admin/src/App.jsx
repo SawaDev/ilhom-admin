@@ -19,7 +19,7 @@ function App() {
     <BrowserRouter>
       {user ? (
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" exact element={<Home />} />
           <Route path="/products" element={<List />} />
           <Route path="/clients" element={<List />} />
           <Route path="/newsale" element={<NewSale />} />

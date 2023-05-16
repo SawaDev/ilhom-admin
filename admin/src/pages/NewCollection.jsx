@@ -5,13 +5,13 @@ import Navbar from '../components/Navbar'
 import { publicRequest, userRequest } from '../utils/requestMethods';
 import { Table, InputNumber } from 'antd';
 
-const NewSale = () => {
+const NewCollection = () => {
   const [newQuantities, setNewQuantities] = useState({});
 
   const queryClient = useQueryClient()
   const createSaleMutation = useMutation({
     mutationFn: (data) => {
-      return userRequest.post("/sales", data);
+      return userRequest.post("/sales/newCollection", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["sales"])
@@ -57,7 +57,8 @@ const NewSale = () => {
       const filteredProducts = productsToAdd.filter((p) => p.ketdi !== null);
 
       const sale = {
-        products: filteredProducts
+        products: filteredProducts,
+        isSale: false
       };
 
       if (sale?.products.length == 0) {
@@ -113,7 +114,7 @@ const NewSale = () => {
       </div>
       <div className='max-w-7xl mx-auto pt-[100px] flex flex-col'>
         <div className='mt-8 px-5 bg-white'>
-          <span className='text-xl font-medium p-2'>Mahsulotlarning ro'yxati</span>
+          <span className='text-xl font-medium p-2'>Yangi Mahsulotlarni kiriting</span>
           <Table
             columns={columns}
             dataSource={productsQuery.data}
@@ -129,4 +130,4 @@ const NewSale = () => {
   )
 }
 
-export default NewSale
+export default NewCollection

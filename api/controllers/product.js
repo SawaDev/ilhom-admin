@@ -1,21 +1,13 @@
-import User from "../models/User.js";
 import Sale from "../models/Sale.js";
 import Product from "../models/Product.js";
-import { createError } from "../utils/error.js";
-
-import mongoose from "mongoose";
 
 export const createProduct = async (req, res, next) => {
   try {
-    const product = await Product.findOne({ name: req.body.name });
-    if (product) return next(createError(403, "Product already exists"));
+    const product = await Product.create(req.body);
 
-    const newProduct = new Product(req.body);
-    await newProduct.save();
-
-    res.status(200).json(newProduct);
+    res.status(201).json(product);
   } catch (err) {
-    next(err)
+    next(err);
   }
 }
 
@@ -62,90 +54,23 @@ export const getProduct = async (req, res, next) => {
 
 export const getProducts = async (req, res, next) => {
   try {
-    const products = await Product.find();
+    const { type } = req.query;
+    const products = await Product.aggregate([
+      {
+        $match: {
+          $expr: {
+            $cond: {
+              if: { $eq: [type, undefined] },
+              then: true,
+              else: { $eq: ["$type", type] }
+            }
+          },
+        }
+      }
+    ])
 
     res.status(200).json(products);
   } catch (err) {
     next(err);
   }
-}
-
-export const getStats = async (req, res, next) => {
-  try {
-    // Count number of products and overall cost
-    const productsData = await Product.aggregate([
-      {
-        $group: {
-          _id: null,
-          productCount: { $sum: "$soni" },
-          overallCost: { $sum: { $multiply: ["$soni", "$price"] } }
-        }
-      }
-    ]);
-    const productsCount = productsData[0].productCount;
-    const overallCost = productsData[0].overallCost;
-
-    // Calculate monthly earnings
-    const date = new Date();
-    const currentMonth = date.getMonth() + 1;
-    const currentYear = date.getFullYear();
-    const firstDayOfMonth = new Date(currentYear, currentMonth - 1, 1);
-    const lastDayOfMonth = new Date(currentYear, currentMonth, 0, 23, 59, 59, 999);
-    const salesData = await Sale.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: firstDayOfMonth, $lte: lastDayOfMonth }
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          monthlyEarnings: { $sum: "$payment" }
-        }
-      }
-    ]);
-    const monthlyEarnings = salesData.length ? salesData[0].monthlyEarnings : 0;
-
-    // Calculate monthly sale
-    const sales = await Sale.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: firstDayOfMonth, $lte: lastDayOfMonth }
-        }
-      },
-      {
-        $unwind: "$products"
-      },
-      {
-        $lookup: {
-          from: "products",
-          localField: "products.productId",
-          foreignField: "_id",
-          as: "product"
-        }
-      },
-      {
-        $unwind: "$product"
-      },
-      {
-        $group: {
-          _id: null,
-          monthlySale: { $sum: { $multiply: ["$products.ketdi", "$product.price"] } }
-        }
-      }
-    ]);
-    const monthlySale = sales.length ? sales[0].monthlySale : 0;
-
-    const warehouseInfo = {
-      productsCount,
-      overallCost,
-      monthlyEarnings,
-      monthlySale
-    };
-
-    res.status(200).json(warehouseInfo);
-  } catch (err) {
-    next(err);
-  }
-
 }

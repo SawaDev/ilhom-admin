@@ -1,14 +1,14 @@
 import { publicRequest } from '../../utils/requestMethods';
-import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useQuery } from '@tanstack/react-query';
 
-export default function Barchart({ id, startDate, endDate }) {
+export default function Barchart({ id, startDate, endDate, setTotalKetdi }) {
 
   const { isLoading, data } = useQuery({
     queryKey: ["sales", id, startDate, endDate],
     queryFn: () =>
       publicRequest.get(`/sales/${id}/daily?start=${startDate}&end=${endDate}`).then((res) => {
+        setTotalKetdi(res?.data[0].totalKetdi)
         return res.data;
       }),
     onError: (err) => {
@@ -16,12 +16,14 @@ export default function Barchart({ id, startDate, endDate }) {
     }
   });
 
+  if (isLoading) return <>Loading...</>
+
   return (
     <ResponsiveContainer width="100%" height="100%">
       <BarChart
         width={500}
         height={400}
-        data={data}
+        data={data[0].sales.sort((a, b) => (a._id > b._id) ? 1 : -1)}
         margin={{
           top: 5,
           right: 5,
@@ -34,8 +36,8 @@ export default function Barchart({ id, startDate, endDate }) {
         <YAxis />
         <Tooltip />
         <Legend />
-        <Bar dataKey="totalKeldi" fill="#8884d8" />
-        <Bar dataKey="totalKetdi" fill="#82ca9d" />
+        {/* <Bar dataKey="keldi" fill="#8884d8" /> */}
+        <Bar dataKey="ketdi" fill="#82ca9d" />
       </BarChart>
     </ResponsiveContainer>
   );

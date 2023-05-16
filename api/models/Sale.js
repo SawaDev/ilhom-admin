@@ -2,10 +2,7 @@ import mongoose, { SchemaTypes } from "mongoose";
 
 const ProductSalesSchema = new mongoose.Schema(
   {
-    clientId: {
-      type: SchemaTypes.ObjectId,
-      ref: 'Client',
-    },
+    isSale: { type: Boolean, default: true },
     products: [{
       productId: {
         type: SchemaTypes.ObjectId,
@@ -16,22 +13,8 @@ const ProductSalesSchema = new mongoose.Schema(
         type: Number,
         default: 0,
         min: 0,
-      },
-      keldi: {
-        type: Number,
-        default: 0,
-        min: 0,
       }
     }],
-    payment: {
-      type: Number,
-      default: 0,
-      min: 0
-    },
-    status: {
-      type: String,
-      default: 'Kutilmoqda'
-    }
   },
   { timestamps: true }
 );

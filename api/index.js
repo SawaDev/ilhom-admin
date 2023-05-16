@@ -7,13 +7,6 @@ import authRoute from "./routes/auth.js"
 import usersRoute from "./routes/users.js"
 import productsRoute from "./routes/products.js"
 import salesRoute from "./routes/sales.js"
-import clientsRoute from "./routes/clients.js"
-import TelegramBot from "node-telegram-bot-api";
-import Client from "./models/Client.js";
-import Product from "./models/Product.js";
-import Sale from "./models/Sale.js";
-import { verifyToken } from "./utils/verifyToken.js";
-import path from "path";
 
 const app = express();
 dotenv.config();
@@ -39,7 +32,6 @@ app.use("/api/auth", authRoute);
 app.use("/api/users", usersRoute);
 app.use("/api/products", productsRoute);
 app.use("/api/sales", salesRoute);
-app.use("/api/clients", clientsRoute);
 
 const port = process.env.port || 8801;
 
@@ -55,192 +47,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
-
-bot.onText(/\/start/, async (msg) => {
-  const chatId = msg.chat.id;
-
-  try {
-    const client = await Client.findOne({ tgUsername: msg.chat.username });
-    if (client) {
-      await Client.updateOne({ _id: client._id }, { $set: { chatId: chatId } });
-    } else {
-      console.log('client not found');
-    }
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
-
-  const message = `Hello, Welcome To my Bot! ${msg.chat.username}`;
-  bot.sendMessage(chatId, message);
-});
-
-app.post('/api/sales', verifyToken, async (req, res, next) => {
-  try {
-    let totalPrice = 0;
-    const productsToSell = [];
-
-    const { clientId, products } = req.body;
-
-    if (clientId === undefined) {
-      for (const product of products) {
-        await Product.findByIdAndUpdate(
-          product.productId,
-          { $inc: { soni: product.keldi } }
-        );
-        productsToSell.push(product)
-      }
-
-      const newSale = new Sale({
-        products: productsToSell
-      })
-
-      await newSale.save();
-
-      return res.status(200).send(newSale)
-    }
-
-    for (const product of products) {
-      const existingProduct = await Product.findById(product.productId);
-      if (existingProduct.soni < product.ketdi) {
-        return res.status(400).json({ message: `Omborda ${existingProduct.name} dan ${product.ketdi} ta mahsulot mavjud emas!` });
-      }
-
-      totalPrice = totalPrice + parseInt(existingProduct.price) * parseInt(product.ketdi);
-
-      productsToSell.push({
-        productId: existingProduct._id,
-        ketdi: product.ketdi
-      });
-    }
-
-    const client = await Client.findById(clientId);
-    if (!client.chatId) {
-      return res.status(404).json({ message: `${client.name} telegram botdan ro'yxatdan o'tmagan yoki telegram username xato berilgan!` })
-    }
-
-    const newSale = new Sale({
-      clientId: new mongoose.Types.ObjectId(clientId),
-      products: productsToSell,
-      payment: req.body.payment
-    });
-
-    for (const product of productsToSell) {
-      await Product.updateOne(
-        { _id: product.productId },
-        { $inc: { soni: -product.ketdi } }
-      );
-    }
-
-    const savedSale = await newSale.save();
-
-    const updatedClient = await Client.findByIdAndUpdate(
-      { _id: clientId },
-      {
-        $push: { sales: savedSale._id },
-        $inc: { cash: savedSale.payment - totalPrice }
-      },
-      { new: true }
-    )
-
-    const options = {
-      reply_markup: {
-        inline_keyboard: [
-          [
-            { text: 'Yes', callback_data: `update_sale_${savedSale._id}` },
-            { text: 'No', callback_data: `no_update_sale_${savedSale._id}` },
-          ]
-        ]
-      }
-    };
-
-    const message = `Yangi harid ma'lumotlati:\nTo'lov: ${savedSale.payment}\n\nMahsulotlar:\n`
-
-    async function getProductById(productId) {
-      try {
-        const product = await Product.findById(productId);
-
-        return product.name;
-      } catch (err) {
-        console.log(err);
-      }
-    }
-
-    const productsString = await Promise.all(productsToSell.map(async (product) => {
-      const foundProduct = await getProductById(product.productId);
-      const productName = foundProduct ? foundProduct : 'Unknown';
-      return `Nomi: ${productName}, soni: ${product.ketdi}\n`;
-    }))
-
-    const productsMessage = message + productsString.join("");
-
-    bot.sendMessage(updatedClient.chatId, productsMessage, options);
-
-    res.status(201).json(savedSale);
-  } catch (error) {
-    next(error);
-  }
-})
-
-bot.on('callback_query', async (callbackQuery) => {
-  const chatId = callbackQuery.message.chat.id;
-  const messageId = callbackQuery.message.message_id;
-  const callbackData = callbackQuery.data;
-
-  if (callbackData.startsWith('update_sale_')) {
-    const saleId = callbackData.split('_')[2];
-
-    const updatedSale = await Sale.findByIdAndUpdate(saleId, { status: 'Tasdiqlandi' }, { new: true });
-
-    const message = `The sale has been updated: ${updatedSale.status}`;
-    bot.sendMessage(chatId, message);
-
-    bot.deleteMessage(chatId, messageId);
-  } else if (callbackData.startsWith('no_')) {
-    const saleId = callbackData.split('_')[3];
-
-    const updatedSale = await Sale.findByIdAndUpdate(saleId, { status: 'Rad etildi' }, { new: true });
-
-    const message = `The sale has been updated: ${updatedSale.status}`;
-    bot.sendMessage(chatId, message);
-
-    bot.deleteMessage(chatId, messageId);
-  }
-});
-
-app.post('/api/sendmessage', async (req, res) => {
-  const { username, message } = req.body;
-
-  try {
-    const client = await Client.findOne({ tgUsername: username })
-
-    const options = {
-      reply_markup: {
-        inline_keyboard: [
-          [
-            { text: 'Yes', callback_data: 'yes' },
-            { text: 'No', callback_data: 'no' },
-          ]
-        ]
-      }
-    };
-
-    bot.sendMessage(client.chatId, message, options);
-    res.status(200).send('Message sent successfully');
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Error occurred while sending the message');
-  }
-});
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../admin/dist/index.html'));
-});
-
 app.listen(port, () => {
   connect();
   console.log("Connected to port 8801");
 });
-
-export { app, bot };

@@ -1,40 +1,18 @@
 import Sale from "../models/Sale.js"
 import Product from "../models/Product.js"
-import Client from "../models/Client.js"
 import mongoose from "mongoose";
 
 export const createSale = async (req, res, next) => {
   try {
-    let totalPrice = 0;
     const productsToSell = [];
 
-    const { clientId, products } = req.body;
-
-    if (clientId === undefined) {
-      for (const product of products) {
-        await Product.findByIdAndUpdate(
-          product.productId,
-          { $inc: { soni: product.keldi } }
-        );
-        productsToSell.push(product)
-      }
-
-      const newSale = new Sale({
-        products: productsToSell
-      })
-
-      await newSale.save();
-
-      return res.status(200).send(newSale)
-    }
+    const { products } = req.body;
 
     for (const product of products) {
       const existingProduct = await Product.findById(product.productId);
       if (existingProduct.soni < product.ketdi) {
         return res.status(400).json({ error: `${existingProduct.name} is not enough` });
       }
-
-      totalPrice = totalPrice + parseInt(existingProduct.price) * parseInt(product.ketdi);
 
       productsToSell.push({
         productId: existingProduct._id,
@@ -43,9 +21,7 @@ export const createSale = async (req, res, next) => {
     }
 
     const newSale = new Sale({
-      clientId: new mongoose.Types.ObjectId(clientId),
       products: productsToSell,
-      payment: req.body.payment
     });
 
     for (const product of productsToSell) {
@@ -56,27 +32,6 @@ export const createSale = async (req, res, next) => {
     }
 
     const savedSale = await newSale.save();
-
-    const updatedClient = await Client.findByIdAndUpdate(
-      { _id: clientId },
-      {
-        $push: { sales: savedSale._id },
-        $inc: { cash: savedSale.payment - totalPrice }
-      },
-      { new: true }
-    )
-
-    const options = {
-      reply_markup: {
-        inline_keyboard: [
-          [
-            { text: 'Yes', callback_data: `update_sale_${sale._id}` },
-            { text: 'No', callback_data: 'no' },
-          ]
-        ]
-      }
-    };
-    bot.sendMessage(updatedClient.chatId, "Do you want to update", options);
 
     res.status(201).json(savedSale);
   } catch (error) {
@@ -91,11 +46,14 @@ export const newCollection = async (req, res, next) => {
     for (const product of products) {
       await Product.updateOne(
         { _id: product.productId },
-        { $inc: { soni: product.keldi } }
+        { $inc: { soni: product.ketdi } }
       );
     }
 
-    res.status(200).send("Updated successfully");
+    const newSale = new Sale({ products, isSale: false });
+    const savedSale = await newSale.save();
+
+    res.status(200).send(savedSale);
   } catch (err) {
     next(err);
   }
@@ -103,8 +61,7 @@ export const newCollection = async (req, res, next) => {
 
 export const getSales = async (req, res, next) => {
   try {
-    const someday = new Date();
-    const finalDate = req?.query?.date ? req.query.date : someday.toISOString().slice(0, 10)
+    const date = req?.query?.date
 
     const sales = await Sale.aggregate([
       {
@@ -119,8 +76,14 @@ export const getSales = async (req, res, next) => {
       },
       {
         $match: {
-          createdAtDate: { $gte: finalDate },
-          clientId: { $exists: true }
+          $expr: {
+            $cond: {
+              if: { $eq: [date, "null"] },
+              then: true,
+              else: { $eq: ["$createdAtDate", date] }
+            }
+          },
+          isSale: true
         }
       },
       {
@@ -129,24 +92,10 @@ export const getSales = async (req, res, next) => {
       {
         $project: {
           _id: 1,
-          clientId: 1,
           ketdi: "$products.ketdi",
-          status: "$status",
-          payment: "$payment",
           products: 1,
           createdAtDate: 1
         }
-      },
-      {
-        $lookup: {
-          from: "clients",
-          localField: "clientId",
-          foreignField: "_id",
-          as: "client"
-        }
-      },
-      {
-        $unwind: "$client"
       },
       {
         $lookup: {
@@ -162,9 +111,6 @@ export const getSales = async (req, res, next) => {
           ketdi: 1,
           products: 1,
           createdAtDate: 1,
-          payment: 1,
-          status: 1,
-          clientName: "$client.name"
         }
       },
       {
@@ -177,130 +123,39 @@ export const getSales = async (req, res, next) => {
       },
       {
         $group: {
-          _id: "$_id",
-          products: {
-            $addToSet: "$products"
+          _id: {
+            createdAtDate: '$createdAtDate',
+            productId: '$products._id',
+            productName: '$products.name',
+            productSize: '$products.size',
+            productType: '$products.type'
           },
-          payment: {
-            $first: "$payment"
-          },
-          status: {
-            $first: "$status"
-          },
-          createdAtDate: {
-            $first: "$createdAtDate"
-          },
-          clientName: {
-            $first: "$clientName"
-          },
+          ketdiTotal: { $sum: '$products.ketdi' }
         }
       },
       {
         $group: {
-          _id: "$createdAtDate",
+          _id: '$_id.createdAtDate',
           sales: {
-            $push: "$$ROOT"
+            $push: {
+              _id: '$_id.productId',
+              name: '$_id.productName',
+              ketdi: '$ketdiTotal',
+              type: '$_id.productType',
+              size: '$_id.productSize'
+            }
           }
         }
       },
       {
         $project: {
           _id: 0,
-          createdAtDate: "$_id",
+          createdAtDate: '$_id',
           sales: 1
         }
       },
       {
-        $sort: { createdAtDate: 1 }
-      }
-    ]);
-
-    res.json(sales);
-  } catch (err) {
-    next(err);
-  }
-}
-
-export const getSalesByClient = async (req, res, next) => {
-  const clientId = req.params.clientId;
-  try {
-    const sales = await Sale.aggregate([
-      {
-        $match: {
-          clientId: new mongoose.Types.ObjectId(clientId)
-        }
-      },
-      {
-        $unwind: "$products"
-      },
-      {
-        $project: {
-          _id: 1,
-          ketdi: "$products.ketdi",
-          status: "$status",
-          payment: "$payment",
-          products: 1,
-          createdAt: {
-            $dateToString: {
-              format: '%Y-%m-%d',
-              date: '$createdAt'
-            }
-          },
-        }
-      },
-      {
-        $lookup: {
-          from: "products",
-          localField: "products.productId",
-          foreignField: "_id",
-          as: "products"
-        }
-      },
-      {
-        $project: {
-          _id: 1,
-          ketdi: 1,
-          products: 1,
-          createdAt: 1,
-          payment: 1,
-          status: 1
-        }
-      },
-      {
-        $unwind: "$products"
-      },
-      {
-        $addFields: {
-          "products.ketdi": "$ketdi"
-        }
-      },
-      {
-        $group: {
-          _id: "$_id",
-          products: {
-            $addToSet: "$products"
-          },
-          payment: {
-            $first: "$payment"
-          },
-          status: {
-            $first: "$status"
-          },
-          createdAt: {
-            $first: "$createdAt"
-          }
-        }
-      },
-      {
-        $group: {
-          _id: "$createdAt",
-          sales: {
-            $push: "$$ROOT"
-          }
-        }
-      },
-      {
-        $sort: { _id: 1 }
+        $sort: { createdAtDate: -1 }
       }
     ]);
 
@@ -320,6 +175,7 @@ export const dailySales = async (req, res, next) => {
       {
         $match: {
           createdAt: { $gte: new Date(startDate), $lte: new Date(endDate) },
+          isSale: true
         }
       },
       {
@@ -333,13 +189,28 @@ export const dailySales = async (req, res, next) => {
       {
         $group: {
           _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-          totalKeldi: { $sum: "$products.keldi" },
-          totalKetdi: { $sum: "$products.ketdi" }
+          ketdi: { $sum: "$products.ketdi" }
         }
       },
       {
-        $sort: { _id: 1 }
-      }
+        $group: {
+          _id: null,
+          sales: {
+            $push: {
+              _id: "$_id",
+              ketdi: "$ketdi"
+            }
+          },
+          totalKetdi: { $sum: "$ketdi" }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          sales: 1,
+          totalKetdi: 1
+        }
+      },
     ]);
 
     sales.length === 0 && res.status(404).json("No sales");
@@ -351,14 +222,6 @@ export const dailySales = async (req, res, next) => {
 
 export const deleteSale = async (req, res, next) => {
   try {
-    const sale = await Sale.findById(req.params.id);
-
-    await Client.findByIdAndUpdate(
-      sale.clientId,
-      { $pull: { sales: sale._id } },
-      { new: true }
-    )
-
     await Sale.findByIdAndDelete(req.params.id)
 
     res.status(200).json("O'chirildi");

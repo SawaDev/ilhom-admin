@@ -9,15 +9,9 @@ import Barchart from '../components/charts/Barchart'
 const SingleProduct = () => {
   const location = useLocation();
   const id = location.pathname.split("/")[2];
-  const path = location.pathname.split("/")[1];
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const [sale, setSale] = useState({
-    "keldi": 0,
-    "ketdi": 0
-  });
-
-  const navigate = useNavigate();
+  const [totalKetdi, setTotalKetdi] = useState(0)
 
   const { isLoading, data: product } = useQuery({
     queryKey: ["products", id],
@@ -59,36 +53,13 @@ const SingleProduct = () => {
           </div>
           {isLoading ? "Loading..." : (
             <>
-              <div className="grid lg:grid-cols-2 grid-rows-2 lg:grid-rows-1 h-fit w-full gap-8 px-3 mb-4 mt-20 md:mt-24">
-                <div className="shadow-lg p-5 relative">
-                  <div className="text-purple-600 font-bold absolute t-0 l-0 p-1 pr-4 bg-purple-200 rounded rounded-br-2xl ">Info</div>
-                  <h1 className="text-center py-4 text-lg text-gray-600">Info</h1>
-                  <div className="flex flex-col gap-5 items-center text-center md:flex-row md:justify-around md:text-left">
-                    <img
-                      src={product?.img ? product.img : "https://us.123rf.com/450wm/mathier/mathier1905/mathier190500002/134557216-no-thumbnail-image-placeholder-for-forums-blogs-and-websites.jpg?ver=6"}
-                      alt="no image"
-                      className="rounded-full w-44 h-44"
-                    />
-                    <div>
-                      <h1 className="mb-3 text-gray-500 text-lg capitalize">{product?.name}</h1>
-                      <div className="mb-2.5 text-md">
-                        <span className="font-bold text-gray-400">Narxi: </span>
-                        <span className="font-light">{product?.price}</span>
-                      </div>
-                      <div className="mb-2.5 text-md">
-                        <span className="font-bold text-gray-400">Soni: </span>
-                        <span className="font-light">{product?.soni}</span>
-                      </div>
-                      <div className="mb-2.5 text-md">
-                        <span className="font-bold text-gray-400">Description: </span>
-                        <span className="font-light">{product?.desc}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="shadow-lg  w-full">
-                  <Barchart id={id} startDate={startDate} endDate={endDate} />
-                </div>
+              <div className='flex gap-10 mt-[100px] mb-10 max-w-7xl mx-auto'>
+                <p className='text-xl font-medium'>Nomi: {product?.name}</p>
+                <p className='text-xl font-medium'>Soni: {product?.soni}</p>
+                <p className='text-xl font-medium'>Jami sotilgan: {totalKetdi}</p>
+              </div>
+              <div className="shadow-lg h-[500px] w-full">
+                <Barchart id={id} startDate={startDate} endDate={endDate} setTotalKetdi={setTotalKetdi} />
               </div>
 
               <div className="grid px-5 gap-8 mb-10 lg:grid-cols-2">
@@ -104,21 +75,6 @@ const SingleProduct = () => {
                     </li>
                   </ul>
                 </div>
-                {/* <div className="shadow-lg p-5">
-                  <form className="flex flex-wrap flex-row justify-around gap-5">
-                    <div className="flex items-center px-1 mb-1">
-                      <label className="mr-3">Keldi: </label>
-                      <input
-                        id="keldi"
-                        onChange={handleChange}
-                        type="number"
-                        placeholder="Keldi"
-                        className="bg-gray-100 p-3 rounded"
-                      />
-                    </div>
-                    <button className="w-40 p-3 bg-teal-600 rounded text-white font-bold cursor-pointer" onClick={handleClick}>Update</button>
-                  </form>
-                </div> */}
               </div>
             </>
           )}

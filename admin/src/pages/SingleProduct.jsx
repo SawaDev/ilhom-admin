@@ -58,11 +58,8 @@ const SingleProduct = () => {
                 <p className='text-xl font-medium'>Soni: {product?.currentSoni}</p>
                 <p className='text-xl font-medium'>Jami sotilgan: {totalKetdi}</p>
               </div>
-              <div className="shadow-lg h-[400px] max-w-7xl mx-auto">
-                <Barchart id={id} startDate={startDate} endDate={endDate} setTotalKetdi={setTotalKetdi} />
-              </div>
 
-              <div className="grid px-5 gap-8 mb-10 lg:grid-cols-2">
+              <div className="max-w-7xl mx-auto mb-10">
                 <div className="shadow-lg p-2 flex items-center">
                   <ul className="flex flex-wrap flex-row w-full justify-around gap-5">
                     <li className="flex items-center px-1 mb-1">
@@ -75,6 +72,10 @@ const SingleProduct = () => {
                     </li>
                   </ul>
                 </div>
+              </div>
+
+              <div className="shadow-lg h-[400px] max-w-7xl mx-auto">
+                <Barchart id={id} startDate={startDate} endDate={endDate} setTotalKetdi={setTotalKetdi} />
               </div>
             </>
           )}

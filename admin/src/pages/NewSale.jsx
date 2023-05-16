@@ -86,6 +86,14 @@ const NewSale = () => {
       key: 'name'
     },
     {
+      title: 'Hajmi',
+      dataIndex: 'size',
+      key: 'size',
+      render: (_, record) => (
+        <p>{record.size} {record.type}</p>
+      )
+    },
+    {
       title: 'Mahsulot Soni',
       dataIndex: 'soni',
       key: 'soni'

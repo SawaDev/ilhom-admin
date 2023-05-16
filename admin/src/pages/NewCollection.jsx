@@ -88,8 +88,8 @@ const NewCollection = () => {
     },
     {
       title: 'Mahsulot Soni',
-      dataIndex: 'soni',
-      key: 'soni'
+      dataIndex: 'currentSoni',
+      key: 'currentSoni'
     },
     {
       title: 'Soni',

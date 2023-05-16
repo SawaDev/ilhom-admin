@@ -35,9 +35,9 @@ const NewProduct = () => {
     try {
       const newProduct = {
         ...info,
-        type
+        type,
+        currentSoni: info.soni
       };
-      console.log(newProduct);
 
       createPostMutation.mutate(newProduct);
       navigate("/products");
@@ -59,18 +59,18 @@ const NewProduct = () => {
         </div>
         <div className="flex flex-col">
           <label className='text-lg font-medium'>Soni</label>
-          <input onChange={handleChange} id="soni" className='border-b-4 p-2 border-gray-300 rounded-md text-lg mt-1 outline-none' placeholder='Price' type="number" />
+          <input onChange={handleChange} id="soni" className='border-b-4 p-2 border-gray-300 rounded-md text-lg mt-1 outline-none' placeholder='Soni' type="number" />
         </div>
         <div className='flex flex-col items-center'>
           <label htmlFor="category" className='text-lg font-medium'>Kategoriyani tanlang:</label>
           <select id="category" name="category" className='border-b-4 p-2 border-gray-300 rounded-md text-lg mt-1 outline-none' onChange={(e) => setType(e.target.value)}>
             <option value="none">none</option>
-            <option value="qop">qop</option>
+            <option value="kg">kg</option>
             <option value="litr">litr</option>
             <option value="ta">ta</option>
           </select>
         </div>
-        {type === 'qop' &&
+        {(type === 'kg' || type === 'litr') &&
           <div className="flex flex-col">
             <label className='text-lg font-medium'>Hajmi</label>
             <input onChange={handleChange} id="size" className='border-b-4 p-2 border-gray-300 rounded-md text-lg mt-1 outline-none' placeholder='Hajmi' type="number" />

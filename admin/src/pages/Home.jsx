@@ -103,43 +103,46 @@ const Home = () => {
 
   const productsColumns = [
     {
-      title: 'name',
+      title: 'nomi',
       dataIndex: 'name',
       width: '20%',
       editable: true,
     },
     {
       title: 'soni',
-      dataIndex: 'soni',
+      dataIndex: 'currentSoni',
       width: '25%',
       editable: true,
+      render: (_, record) => (
+        <p>{record.currentSoni} {record.type}</p>
+      )
     },
     {
-      title: 'operations',
+      title: '',
       dataIndex: 'operations',
       render: (_, record) => {
         const editable = isEditing(record);
         return editable ? (
           <span>
             <Typography.Link onClick={() => saveP(record._id)} style={{ marginRight: 8 }}>
-              Save
+              Saqlash
             </Typography.Link>
             <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
-              <a>Cancel</a>
+              <a>Bekor qilish</a>
             </Popconfirm>
           </span>
         ) : (
           <div className='flex flex-wrap gap-2'>
             <Typography.Link disabled={editingKey !== ''} className="p-1 px-2 rounded-lg border-blue-400 border-[1px] " onClick={() => edit(record)}>
-              Edit
+              Tahrirlash
             </Typography.Link>
 
             <Typography.Link disabled={editingKey !== ''} className="p-1 px-2 rounded-lg border-green-400 border-[1px] text-green-500" onClick={() => navigate(`/products/${record._id}`)}>
-              View
+              Ko'proq
             </Typography.Link>
 
             <Typography.Link disabled={editingKey !== '' || mutation.isLoading} className="p-1 px-2 rounded-lg border-red-400 border-[1px] text-red-500" onClick={() => handleDelete(record._id)}>
-              Delete
+              O'chirish
             </Typography.Link>
           </div>
         );

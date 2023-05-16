@@ -44,7 +44,7 @@ const EditableCell = ({
 const List = () => {
   const [form] = Form.useForm();
   const [editingKey, setEditingKey] = useState('');
-  const [type, setType] = useState('qop');
+  const [type, setType] = useState('kg');
   const isEditing = (record) => record._id === editingKey;
 
   const navigate = useNavigate();
@@ -63,7 +63,6 @@ const List = () => {
     form.setFieldsValue({
       name: '',
       soni: '',
-      price: '',
       ...record,
     });
     setEditingKey(record._id);
@@ -75,9 +74,9 @@ const List = () => {
 
   const saveP = async (id) => {
     try {
-      const formData = await form.validateFields();
+      const { name, soni, size } = await form.validateFields();
 
-      await userRequest.put(`/${path}/${id}`, formData)
+      await userRequest.put(`/${path}/${id}`, { name, soni, size })
 
       window.location.reload();
     } catch (err) {
@@ -108,17 +107,45 @@ const List = () => {
     {
       title: 'name',
       dataIndex: 'name',
-      width: '20%',
+      width: 250,
       editable: true,
     },
     {
       title: 'soni',
       dataIndex: 'soni',
-      width: '25%',
+      width: 200,
       editable: true,
     },
     {
-      title: 'operations',
+      title: 'Qolgan mahsulot',
+      dataIndex: 'currentSoni',
+      width: 200,
+    }
+  ];
+
+  const qopObject = [
+    {
+      title: "Hajmi",
+      dataIndex: "size",
+      width: 100,
+      editable: true,
+      render: (_, record) => (
+        <p>{record?.size} kg</p>
+      )
+    },
+    {
+      title: "Qop",
+      dataIndex: "kg",
+      width: 200,
+      render: (_, record) => (
+        <p>{Math.floor(record?.soni / record?.size)}</p>
+      )
+    }
+  ]
+
+  const operation = [
+    {
+      title: '',
       dataIndex: 'operations',
       render: (_, record) => {
         const editable = isEditing(record);
@@ -134,41 +161,21 @@ const List = () => {
         ) : (
           <div className='flex flex-wrap gap-2'>
             <Typography.Link disabled={editingKey !== ''} className="p-1 px-2 rounded-lg border-blue-400 border-[1px] " onClick={() => edit(record)}>
-              Edit
+              Tahrirlash
             </Typography.Link>
 
             <Typography.Link disabled={editingKey !== ''} className="p-1 px-2 rounded-lg border-green-400 border-[1px] text-green-500" onClick={() => navigate(`/products/${record._id}`)}>
-              View
+              Ko'proq
             </Typography.Link>
 
             <Typography.Link disabled={editingKey !== '' || mutation.isLoading} className="p-1 px-2 rounded-lg border-red-400 border-[1px] text-red-500" onClick={() => handleDelete(record._id)}>
-              Delete
+              O'chirish
             </Typography.Link>
           </div>
         );
       },
     },
-  ];
-
-  const qopObject = [
-    {
-      title: "Hajmi",
-      dataIndex: "size",
-      editable: true,
-      render: (_, record) => (
-        <p>{record?.size} kg</p>
-      )
-    },
-    {
-      title: "Kg",
-      dataIndex: "kg",
-      width: "20%",
-      render: (_, record) => (
-        <p>{record?.size * record?.soni}</p>
-      )
-    }
   ]
-
 
   const mergedProductsColumns = productsColumns.map((col) => {
     if (!col.editable) {
@@ -186,7 +193,7 @@ const List = () => {
     };
   });
 
-  const qopColumns = productsColumns.concat(qopObject)
+  const qopColumns = productsColumns.concat(qopObject, operation)
 
   const mergedQopColumns = qopColumns.map((col) => {
     if (!col.editable) {
@@ -215,17 +222,16 @@ const List = () => {
             Mahsulotlar
           </p>
           <Link to="/products/new">
-          <div className='py-2 px-4 border-2 border-blue-500 text-blue-500 rounded-2xl'>Yangi</div>
+            <div className='py-2 px-4 border-2 border-blue-500 text-blue-500 rounded-2xl'>Yangi</div>
           </Link>
         </div>
         <div className='flex items-center gap-10 text-xl font-semibold'>
           <label htmlFor="category">Kategoriyani tanlang:</label>
           <select id="category" name="category" className='border-2 border-black rounded-md py-2 px-4 capitalize' onChange={(e) => setType(e.target.value)}>
-            <option value="qop">qop</option>
+            <option value="kg">kg</option>
             <option value="litr">litr</option>
             <option value="ta">ta</option>
           </select>
-          <input type="submit" />
         </div>
         <div className="">
           <Form form={form} component={false}>
@@ -237,7 +243,7 @@ const List = () => {
               }}
               bordered
               dataSource={data}
-              columns={type === "qop" ? mergedQopColumns : mergedProductsColumns}
+              columns={type === "kg" ? mergedQopColumns : mergedProductsColumns.concat(operation)}
               rowClassName="editable-row"
               pagination={false}
               scroll={{

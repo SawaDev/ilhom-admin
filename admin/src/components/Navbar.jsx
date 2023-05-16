@@ -40,37 +40,6 @@ const Navbar = () => {
             >
               <MenuIcon />
             </button>
-            <button
-              type="button"
-              className="relative rounded-full p-2 hover:bg-light-gray"
-            >
-              <DarkModeOutlinedIcon />
-            </button>
-            <button
-              type="button"
-              className="relative rounded-full p-2 hover:bg-light-gray"
-            >
-              <span
-                className="absolute inline-flex rounded-full h-2 w-2 right-2 top-2 bg-red-600"
-              />
-              <NotificationsNoneOutlinedIcon />
-            </button>
-            <button
-              type="button"
-              className="relative rounded-full p-2 hover:bg-light-gray"
-            >
-              <span
-                className="absolute inline-flex rounded-full h-2 w-2 right-2 top-2 bg-red-600"
-              />
-              <ChatBubbleOutlineOutlinedIcon />
-            </button>
-            <div className="w-10 h-10">
-              <img
-                src="https://www.jing.fm/clipimg/full/398-3981675_avatar-for-login-form.png"
-                alt=""
-                className="avatar"
-              />
-            </div>
           </div>
         </div>
       ) : (

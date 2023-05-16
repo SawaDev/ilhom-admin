@@ -55,10 +55,10 @@ const SingleProduct = () => {
             <>
               <div className='flex gap-10 mt-[100px] mb-10 max-w-7xl mx-auto'>
                 <p className='text-xl font-medium'>Nomi: {product?.name}</p>
-                <p className='text-xl font-medium'>Soni: {product?.soni}</p>
+                <p className='text-xl font-medium'>Soni: {product?.currentSoni}</p>
                 <p className='text-xl font-medium'>Jami sotilgan: {totalKetdi}</p>
               </div>
-              <div className="shadow-lg h-[500px] w-full">
+              <div className="shadow-lg h-[400px] max-w-7xl mx-auto">
                 <Barchart id={id} startDate={startDate} endDate={endDate} setTotalKetdi={setTotalKetdi} />
               </div>
 

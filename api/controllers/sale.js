@@ -10,7 +10,7 @@ export const createSale = async (req, res, next) => {
 
     for (const product of products) {
       const existingProduct = await Product.findById(product.productId);
-      if (existingProduct.soni < product.ketdi) {
+      if (existingProduct.currentSoni < product.ketdi) {
         return res.status(400).json({ error: `${existingProduct.name} is not enough` });
       }
 
@@ -27,7 +27,7 @@ export const createSale = async (req, res, next) => {
     for (const product of productsToSell) {
       await Product.updateOne(
         { _id: product.productId },
-        { $inc: { soni: -product.ketdi } }
+        { $inc: { currentSoni: -product.ketdi } }
       );
     }
 
@@ -46,7 +46,7 @@ export const newCollection = async (req, res, next) => {
     for (const product of products) {
       await Product.updateOne(
         { _id: product.productId },
-        { $inc: { soni: product.ketdi } }
+        { $inc: { currentSoni: product.ketdi, soni: product.ketdi } }
       );
     }
 

@@ -13,9 +13,15 @@ export const createProduct = async (req, res, next) => {
 
 export const updateProduct = async (req, res, next) => {
   try {
+    const product = await Product.findById(req.params.id);
+
+    let newSoni = product.soni - req.body.soni;
     const updateProduct = await Product.findByIdAndUpdate(
       req.params.id,
-      { $set: req.body },
+      {
+        $set: req.body,
+        $inc: { currentSoni: -newSoni }
+      },
       { new: true }
     );
     res.status(200).json(updateProduct);

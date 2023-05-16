@@ -17,6 +17,7 @@ export default function Barchart({ id, startDate, endDate, setTotalKetdi }) {
   });
 
   if (isLoading) return <>Loading...</>
+  if(!data) return <>Sotuv mavjud emas</>
 
   return (
     <ResponsiveContainer width="100%" height="100%">

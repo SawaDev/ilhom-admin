@@ -130,12 +130,12 @@ const List = () => {
       width: 100,
       editable: true,
       render: (_, record) => (
-        <p>{record?.size} kg</p>
+        <p>{record?.size} {record?.type}</p>
       )
     },
     {
-      title: "Qop",
-      dataIndex: "kg",
+      title: "Turi",
+      dataIndex: "type",
       width: 200,
       render: (_, record) => (
         <p>{Math.floor(record?.soni / record?.size)}</p>
@@ -243,7 +243,7 @@ const List = () => {
               }}
               bordered
               dataSource={data}
-              columns={type === "kg" ? mergedQopColumns : mergedProductsColumns.concat(operation)}
+              columns={(type === "kg" || type === "litr") ? mergedQopColumns : mergedProductsColumns.concat( operation)}
               rowClassName="editable-row"
               pagination={false}
               scroll={{

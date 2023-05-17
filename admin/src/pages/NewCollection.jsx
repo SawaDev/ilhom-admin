@@ -7,6 +7,7 @@ import { Table, InputNumber } from 'antd';
 
 const NewCollection = () => {
   const [newQuantities, setNewQuantities] = useState({});
+  const [loading, setLoading] = useState(false)
 
   const queryClient = useQueryClient()
   const createSaleMutation = useMutation({
@@ -46,6 +47,7 @@ const NewCollection = () => {
   };
 
   const handleSave = async () => {
+    setLoading(true);
     try {
       const productsToAdd = Object.entries(newQuantities).map(
         ([productId, ketdi]) => ({
@@ -73,7 +75,7 @@ const NewCollection = () => {
       }
 
       await createSaleMutation.mutateAsync(sale)
-
+      setLoading(false);
       navigate("/clients");
     } catch (err) {
       alert(err);
@@ -123,7 +125,7 @@ const NewCollection = () => {
           />
         </div>
         <div className='w-full flex justify-end pr-5 pt-5'>
-          <button className='bg-purple-100 text-purple-600 py-4 px-6 mb-10 rounded-xl duration-100 ease-in hover:scale-110' onClick={handleSave}>Save</button>
+          <button disabled={loading} className='bg-purple-100 text-purple-600 py-4 px-6 mb-10 rounded-xl duration-100 ease-in hover:scale-110' onClick={handleSave}>Save</button>
         </div>
       </div>
     </div>
